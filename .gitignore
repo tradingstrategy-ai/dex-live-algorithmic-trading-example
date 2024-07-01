@@ -1,0 +1,11 @@
+cache
+logs/*
+*.prof
+tmp*
+state/*
+vault-info.json
+caddy/logs/*
+caddy/data/*
+old-state-backup/
+.vscode/*
+.DS_Store
