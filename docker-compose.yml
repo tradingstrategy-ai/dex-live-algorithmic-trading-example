@@ -19,21 +19,25 @@
         # Save the log files to the local file system
         - ./logs:/usr/src/trade-executor/logs
 
+      # CTRL+C workaround
+      # https://stackoverflow.com/a/50357065/315168
+      init: true  
+
       # This is the default trade-executor command to
       # launch as a daemon mode.
       # There are several subcommands.
       command: start
 
     services:
-
-      # This is your trade executor name
-      hotwallet-polygon-eth-usdc-breakout:
-        <<: *default-trade-executor
-        container_name: hotwallet-polygon-eth-usdc-breakout
+      
+      hotwallet-polygon-eth-usdc-breakout:  # This is your trade executor id
+        <<: *default-trade-executor  # Extend the default configuration block
+        container_name: hotwallet-polygon-eth-usdc-breakout  # Same as above
         platform: linux/x86_64  # Needed when running on macOS
+        env_file:
+          - ./env/hotwallet-polygon-eth-usdc-breakout.env
         # Web API for frontend would be exposed in this port,
         # 
         # ports:  
         #   - "127.0.0.1:19006:3456"
-        env_file:
-          - ./env/hotwallet-polygon-eth-usdc-breakout.env
+          

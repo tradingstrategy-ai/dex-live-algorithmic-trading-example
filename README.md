@@ -84,7 +84,76 @@ icon = ""  # Optional: Frontend metadata
 short_description = ""  # Optional: Frontend metadata
 long_description = ""  # Optional: Frontend metadata
 ```
-- [See the resulting Python file here](./strategies/hotwallet-polygon-eth-usdc-breakout.py) 
+
+We also edit the strategy to dynamically decide which trading universe to use
+- Binance for backtesting (longer history)
+- DEX for live trading
+
+Example modification here:
+
+```python
+def get_strategy_trading_pairs(execution_mode: ExecutionMode) -> list[HumanReadableTradingPairDescription]:
+    if execution_mode.is_backtesting():
+        # Need longer history
+        trading_pairs = [
+            (ChainId.centralised_exchange, "binance", "ETH", "USDT"),
+        ]
+
+    else:
+        # For live trading we do Uniswap v3 on Polygon
+        trading_pairs = [
+            (ChainId.polygon, "uniswap-v3", "WETH", "USDC", 0.0005),
+        ]
+    return trading_pairs
+
+
+def create_trading_universe(
+    timestamp: datetime.datetime,
+    client: Client,
+    execution_context: ExecutionContext,
+    universe_options: UniverseOptions,
+) -> TradingStrategyUniverse:
+    """Create the trading universe."""
+    trading_pairs = get_strategy_trading_pairs(execution_context.mode)
+
+    if execution_context.mode.is_backtesting():
+        # Backtesting - load Binance data to get longer history
+        strategy_universe = create_binance_universe(
+            [f"{p[2]}{p[3]}" for p in trading_pairs],
+            candle_time_bucket=Parameters.candle_time_bucket,
+            stop_loss_time_bucket=Parameters.stop_loss_time_bucket,
+            start_at=universe_options.start_at,
+            end_at=universe_options.end_at,
+            forward_fill=True,
+        )        
+
+    else:
+        # How many bars of live trading data needed
+        required_history_period = Parameters.required_history_period
+
+        dataset = load_partial_data(
+            client=client,
+            time_bucket=Parameters.candle_time_bucket,
+            pairs=trading_pairs,
+            execution_context=execution_context,
+            universe_options=universe_options,
+            liquidity=False,
+            stop_loss_time_bucket=Parameters.stop_loss_time_bucket,
+            required_history_period=required_history_period,
+        )
+        # Construct a trading universe from the loaded data,
+        # and apply any data preprocessing needed before giving it
+        # to the strategy and indicators
+        strategy_universe = TradingStrategyUniverse.create_from_dataset(
+            dataset,
+            reserve_asset="USDC",
+            forward_fill=True,
+        )
+
+    return strategy_universe
+```
+
+- [See the full resulting Python file here](./strategies/hotwallet-polygon-eth-usdc-breakout.py) 
 
 # Step 4: Set up docker compose entry
 
@@ -139,6 +208,32 @@ Options:
   --help                          Show this message and exit.
 ...
 ```
+
+Then you need to add your [Trading Strategy API key](https://tradingstrategy.ai/trading-view/api) in [./env/hotwallet-polygon-eth-usdc-breakout.env](./env/hotwallet-polygon-eth-usdc-breakout.env):
+
+Now run the backtest:
+
+```shell
+docker compose run hotwallet-polygon-eth-usdc-breakout backtest
+```
+
+You are likely to encounter several Python bugs in this step, so keep fixing your Python strategy module.
+
+The end of the output should look like:
+
+```
+Writing backtest data the state file: /usr/src/trade-executor/state/hotwallet-polygon-eth-usdc-breakout-backtest.json
+Exporting report, notebook: state/hotwallet-polygon-eth-usdc-breakout-backtest.ipynb, HTML: state/hotwallet-polygon-eth-usdc-breakout-backtest.html
+```
+
+After the backtest is complete, you can view the HTML report:
+
+```shell
+# macOS way to open a HTML file from the command line
+open state/hotwallet-polygon-eth-usdc-breakout-backtest.html
+```
+
+You should see the backtest results, as captured from the default backtest notebook template.
 
 # Step 7: Set up a hot wallet
 
