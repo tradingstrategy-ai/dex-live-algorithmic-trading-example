@@ -11,7 +11,7 @@
       mem_swappiness: 0
       volumes:
         # Map the path from where we load the strategy Python modules
-        - ./strategy:/usr/src/trade-executor/strategy
+        - ./strategies:/usr/src/trade-executor/strategies
         # Save the strategy execution state in the local filesystem
         - ./state:/usr/src/trade-executor/state
         # Cache the dataset downloads in the local filesystem
@@ -31,9 +31,9 @@
         <<: *default-trade-executor
         container_name: hotwallet-polygon-eth-usdc-breakout
         platform: linux/x86_64  # Needed when running on macOS
-        ports:  
-          # Web API for frontend would be exposed in this port,
-          # 
-          - "127.0.0.1:19006:3456"
+        # Web API for frontend would be exposed in this port,
+        # 
+        # ports:  
+        #   - "127.0.0.1:19006:3456"
         env_file:
-          - ~/secrets/enzyme-polygon-eth-usdc-final.env
+          - ./env/hotwallet-polygon-eth-usdc-breakout.env

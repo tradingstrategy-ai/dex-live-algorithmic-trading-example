@@ -9,3 +9,6 @@ caddy/data/*
 old-state-backup/
 .vscode/*
 .DS_Store
+
+*.env
+

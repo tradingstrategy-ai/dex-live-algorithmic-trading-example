@@ -45,6 +45,16 @@ from tradeexecutor.utils.binance import create_binance_universe
 
 trading_strategy_engine_version = "0.5"
 
+name = "ETH-BTC-USDC momentum"  # Optional: Frontend metadata
+
+tags = {StrategyTag.beta, StrategyTag.live}  # Optional: Frontend metadata
+
+icon = ""  # Optional: Frontend metadata
+
+short_description = ""  # Optional: Frontend metadata
+
+long_description = ""  # Optional: Frontend metadata
+
 
 class Parameters:
     """Parameteres for this strategy.
@@ -84,7 +94,6 @@ class Parameters:
 
     backtest_start = datetime.datetime(2022, 10, 1)
     backtest_end = datetime.datetime(2024, 5, 1)
-
     stop_loss_time_bucket = TimeBucket.m5
     initial_cash = 10_000
 

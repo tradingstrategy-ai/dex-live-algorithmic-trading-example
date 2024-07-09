@@ -1,9 +1,13 @@
 This is an example repository for setting up a `docker-compose.yml` for a minimal live [trade-executor](https://github.com/tradingstrategy-ai/trade-executor/).
 
-- This allows you to start a live trade execution in your computer using Docekr
+- This allows you to start a live trade execution in your computer using Docker
 - It is a limited preproduction environment with devops and web frontend missing
 - We use Polygon environment as it is an easy and cost-friendly way to do some test trades
-- [See the documentation for more information](https://tradingstrategy.ai/docs/deployment/hot-wallet-deployment.html)
+- The folder structure is set up in a manner you can run several trade executors under the same `docker-compose.yml` configuration
+
+For further iformation
+
+- [See the documentation](https://tradingstrategy.ai/docs/deployment/hot-wallet-deployment.html)
 
 Preface
 -------
@@ -29,30 +33,58 @@ Missing things
 
 See [Getting started](https://github.com/tradingstrategy-ai/getting-started) if you do not have a trading strategy yet.
 
-Usual deliverables includes: 
+The usual deliverables of developing a trading strategy include: 
 
 1. Initial backtest notebook
 2. Optimiser that crunches through multiple parameters
-2. Final backtest notebook with fixed parameters you are prepare to take to the live trading
+2. Final backtest notebook with fixed parameters you are prepared to take to the live trading
 
-In this repo we have
+For this example we have 
 
-1. [See here]()
-2. [See here]()
-3. [See here]()
+1. Initial backtest - somewhere in [Getting started repo](https://github.com/tradingstrategy-ai/getting-started)
+2. Optimiser notebook. [See here](./notebooks/eth-breakout-optimiser.ipynb)
+3. Final backtest. [See here](./notebooks/eth-breakout-dex-final.ipynb)
 
-# Step 2: Extract strategy as a Python module
+# Step 2: Give the strategy id
 
-We convert the final backtest notebook to a Python module.
-
-- [See the instructions here]() 
-- [See the result here]() - based on (3) in the step above
-
-# Step 3: Name final strategy
-
-You are going to have a lot of strategies. You need to have a systematic way to keep track of then.
+You are going to have a lot of strategies. You need to have a systematic way to keep track of them.
 
 We are going to us `hotwallet-polygon-eth-usdc-breakout`. It's a mouthful, but self-explanatory.
+
+This id is used in
+
+- URLs
+- State file
+- Log files 
+- etc.
+
+# Step 3: Extract strategy as a Python module
+
+We convert the final backtest notebook to a Python module. We use (3) from the step above as the starting point.
+
+Rules to convert
+
+- Create a Python file
+- Copy-paste the strategy from the notebook 
+  - `Parameteters` class
+  - `decide_trades`
+  - `create_indicators`
+  - `create_strategy_universe`
+- Autocomplete the imports for the Python file
+  - Usually a good editor like Visual Studio Code or PyCharm can do this for you with a keypress or two
+- Modify `create_strategy_universe` to cater to both the backtesting and live trading
+  - Different options are available if you want to show DEX backtesting data (usually too short period)
+- Add the following Python module variables 
+
+```python
+trading_strategy_engine_version = "0.5"
+name = "ETH-BTC-USDC momentum"  # Optional: Frontend metadata
+tags = {StrategyTag.beta, StrategyTag.live}  # Optional: Frontend metadata
+icon = ""  # Optional: Frontend metadata
+short_description = ""  # Optional: Frontend metadata
+long_description = ""  # Optional: Frontend metadata
+```
+- [See the resulting Python file here](./strategies/hotwallet-polygon-eth-usdc-breakout.py) 
 
 # Step 4: Set up docker compose entry
 
@@ -94,10 +126,18 @@ source scripts/export-latest-trade-executor-version.sh
 docker compose run hotwallet-polygon-eth-usdc-breakout --help
 ```
 
-You should get:
+You should see the command line help for [trade-executor command](https://tradingstrategy.ai/docs/deployment/trade-executor.html):
 
 ```
+Usage: trade-executor [OPTIONS] COMMAND [ARGS]...
 
+Options:
+  --install-completion [bash|zsh|fish|powershell|pwsh]
+                                  Install completion for the specified shell.
+  --show-completion [bash|zsh|fish|powershell|pwsh]
+                                  Show completion for the specified shell, to copy it or customize the installation.
+  --help                          Show this message and exit.
+...
 ```
 
 # Step 7: Set up a hot wallet
@@ -105,7 +145,7 @@ You should get:
 You need a hot wallet
 
 - It costs ETH/MATIC/etc. to broadcast the transactions for your trades
-- A hot wallet it's just EVM account
+- A hot wallet is just an EVM account with the associated private key 
 
 ## Step 7.a: Generate a private key
 
@@ -115,7 +155,7 @@ To create a hot wallet for the executor you can [do it from the command line](ht
 head -c 32 /dev/urandom|xxd -ps -c 32
 ```
 
-This will give you private key:
+This will give you a private key (example - do not use this private key):
 
 ```
 68f4e1be83e2bd242d1a5a668574dd3b6b76a29f254b4ae662eba5381d1fc3a6
@@ -125,13 +165,22 @@ Then
 
 - Store the private key safely in your backup storage (password manager, or something stronger depending on the security level)
 
-- Private key will be needed in the trade execution configuration file- You
-
 **Note**: Hot wallets cannot be shared across different `trade-executor` instances, because this will mess up accounting.
 
 ## Step 7.b: Add the private key environment variable file
 
-Edit `hotwallet-polygon-eth-usdc-breakout.env`.
+Private key will be needed in the trade execution configuration file
+
+- Edit `hotwallet-polygon-eth-usdc-breakout.env`.
+- Add `0x` prefix to the raw hex output from the step above
+- Fill in `PRIVATE_KEY`.
+
+Example:
+
+```shell
+# Do not use this private key 
+PRIVATE_KEY=0x68f4e1be83e2bd242d1a5a668574dd3b6b76a29f254b4ae662eba5381d1fc3a6
+```
 
 ## Step 7.c Check the wallet
 
@@ -277,8 +326,6 @@ docker compose up -d
 ```
 
 The given strategy rebalances every 1h. So you should see something working or not working within 1h.
-
-
 
 ## Step 12: Configure additional RPC providers (optional)
 
