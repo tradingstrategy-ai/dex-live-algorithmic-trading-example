@@ -33,7 +33,6 @@
       hotwallet-polygon-eth-usdc-breakout:  # This is your trade executor id
         <<: *default-trade-executor  # Extend the default configuration block
         container_name: hotwallet-polygon-eth-usdc-breakout  # Same as above
-        platform: linux/x86_64  # Needed when running on macOS
         env_file:
           - ./env/hotwallet-polygon-eth-usdc-breakout.env
         # Web API for frontend would be exposed in this port,

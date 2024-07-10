@@ -41,8 +41,8 @@ class Parameters:
 
     atr_length = 6 
     fract = 2.1
-    adx_length = 30
-    adx_filter_threshold = 0
+    adx_length = 60
+    adx_filter_threshold = 48
 
     trailing_stop_loss_pct = 0.98
     trailing_stop_loss_activation_level = 1.08
@@ -60,7 +60,7 @@ class Parameters:
     # Backtesting only
     #
 
-    backtest_start = datetime.datetime(2018, 1, 1)
+    backtest_start = datetime.datetime(2019, 6, 1)
     backtest_end = datetime.datetime(2024, 6, 1)
     stop_loss_time_bucket = TimeBucket.m15
     initial_cash = 10_000
@@ -289,7 +289,7 @@ def decide_trades(
 
 trading_strategy_engine_version = "0.5"  # Allows to upgrade strategy file format
 
-name = Parameters  # Optional: Frontend metadata
+name = Parameters.id  # Optional: Frontend metadata
 
 tags = {StrategyTag.beta, StrategyTag.live}  # Optional: Frontend metadata
 

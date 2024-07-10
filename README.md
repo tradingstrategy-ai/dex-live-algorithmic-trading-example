@@ -155,12 +155,11 @@ def create_trading_universe(
 
 - [See the full resulting Python file here](./strategies/hotwallet-polygon-eth-usdc-breakout.py) 
 
-# Step 4: Set up docker compose entry
+# Step 4: Set up docker-compose.yml entry
 
 - [See docker-compose.yml](./docker-compose.yml)
 
-**Note**: We use new style `docker compose` commands in this README, instead of `docker-compose` legacy command (with dash). 
-Make sure you have the latest version.
+**Note**: We use new style `docker compose` commands in this README, instead of `docker-compose` legacy command (with dash). Make sure you have the latest version.
 
 # Step 5: Set up an environment file
 
@@ -173,25 +172,22 @@ directly to these files/
 
 The file comes with
 
-- No hot wallet/private key set up
+- No hot wallet set up
+- No Trading Strategy API key set up 
 - Public low quality Polygon RPC endpoint (do not use for production - likely just keeps crashing)
 
-# Step 6: Run backtest with the strategy module
+# Step 6: Test Docker container start
 
-This will run the strategy backtest using `docker compose` command.
-
-- This command will execute the same backtest as you would have runned earlier in the final notebook
-- Python errors when running this command will catch any mistakes made during the strategy module creation
-- Backtest artifacts are written under `state/` folder
-- The same artifacts will be served in the web frontend for the users who want to see the backtest results
+We try to run and verify our Docker Compose launches.
 
 First we need to choose the trade-executor release. The trade executor is under active development
 and may see multiple releases per day. [You can find releases on Github](https://github.com/tradingstrategy-ai/trade-executor/pkgs/container/trade-executor)
 
-Then we try to run and verify our Docker Compose launches.
-
 ```shell
+# Get the latest trade-executor version tag from Github to environment variable
 source scripts/export-latest-trade-executor-version.sh
+
+# Launch to show the command line help
 docker compose run hotwallet-polygon-eth-usdc-breakout --help
 ```
 
@@ -209,13 +205,24 @@ Options:
 ...
 ```
 
-Then you need to add your [Trading Strategy API key](https://tradingstrategy.ai/trading-view/api) in [./env/hotwallet-polygon-eth-usdc-breakout.env](./env/hotwallet-polygon-eth-usdc-breakout.env):
+# Step 7: Run backtest for the strategy module
+
+This will run the strategy backtest using `docker compose` command.
+
+- This command will execute the same backtest as you would have run earlier in the final notebook
+- Python errors when running this command will catch any mistakes made during the strategy module creation
+- Backtest artifacts like HTML backtest report are written under `state/` folder
+- The same artifacts will be served in the web frontend for the users who want to see the backtest results
+
+You need to add your [Trading Strategy API key](https://tradingstrategy.ai/trading-view/api) in [./env/hotwallet-polygon-eth-usdc-breakout.env](./env/hotwallet-polygon-eth-usdc-breakout.env):
 
 Now run the backtest:
 
 ```shell
 docker compose run hotwallet-polygon-eth-usdc-breakout backtest
 ```
+
+**Note**: Currently macOS and Apple Silicon run Intel architecture Docker images, slowing down the execution 5x - 10x. [Github Actions do not support building macOS Docker images yet](https://stackoverflow.com/a/78202969/315168). When you run this command on macOS prepare to wait for ~20 minutes.
 
 You are likely to encounter several Python bugs in this step, so keep fixing your Python strategy module.
 
@@ -235,14 +242,14 @@ open state/hotwallet-polygon-eth-usdc-breakout-backtest.html
 
 You should see the backtest results, as captured from the default backtest notebook template.
 
-# Step 7: Set up a hot wallet
+# Step 8: Set up a hot wallet
 
 You need a hot wallet
 
 - It costs ETH/MATIC/etc. to broadcast the transactions for your trades
 - A hot wallet is just an EVM account with the associated private key 
 
-## Step 7.a: Generate a private key
+## Step 8a: Generate a private key
 
 To create a hot wallet for the executor you can [do it from the command line](https://ethereum.stackexchange.com/questions/82926/how-to-generate-a-new-ethereum-address-and-private-key-from-a-command-line):
 
@@ -262,7 +269,7 @@ Then
 
 **Note**: Hot wallets cannot be shared across different `trade-executor` instances, because this will mess up accounting.
 
-## Step 7.b: Add the private key environment variable file
+## Step 8b: Add the private key environment variable file
 
 Private key will be needed in the trade execution configuration file
 
@@ -277,7 +284,7 @@ Example:
 PRIVATE_KEY=0x68f4e1be83e2bd242d1a5a668574dd3b6b76a29f254b4ae662eba5381d1fc3a6
 ```
 
-## Step 7.c Check the wallet
+## Step 8c Check the wallet
 
 `trade-executor` provides the subcommand `check-wallet` to check the hot wallet status.
 
@@ -323,7 +330,7 @@ Routing details
 
 ```
 
-## Step 7.c: Fund the account
+## Step 8d: Fund the account
 
 We need 
 
@@ -337,7 +344,7 @@ Send MATIC and USDC.e to the address you saw above.
 **Note**: Due to historical reasons we use USDC.e (bridged variant) over native USDC on Polygon,
 because it has better liquidity. These two tokens are not fungible as the writing of this.
 
-## Step 7.d: Check the wallet again
+## Step 8e: Check the wallet again
 
 Now you should have some MATIC and USDC.e in your hot wallet.
 
@@ -352,7 +359,7 @@ We see the account is funded now:
 
 ```
 
-## Step 8: Check the trading universe
+## Step 9: Check the trading universe
 
 `trade-executor` provides the subcommand `check-universe` to ensure the market data feeds work correctly.
 
@@ -373,7 +380,7 @@ This will print out:
 Latest OHCLV candle is at: 2022-11-24 16:00:00, 1:49:57.985345 ago
 ```
 
-## Step 9: Perform test trade
+## Step 10: Perform test trade
 
 After you are sure that trading data and hot wallet are fine,
 you can perform a test trade from the command line.
@@ -424,5 +431,25 @@ The given strategy rebalances every 1h. So you should see something working or n
 
 ## Step 12: Configure additional RPC providers (optional)
 
+- The configuration line `JSON_RPC_POLYGON` accepts multiple space separared provided URLs.
+- The same feature can be used to add MEV protected RPC endpoints for your trade executor
+
+[See the multi-RPC configuration documentation here](https://web3-ethereum-defi.readthedocs.io/tutorials/multi-rpc-configuration.html).
+
 ## Step 13: Set up Discord logging (optional)
 
+In this example, we only output trades in the docker console.
+
+The trade-executor supports output to different team chat mediums. like Discord.
+
+To configure Discord logging
+
+- Create a private Discord channel
+- In the channel settings, go to *Integrations*
+- Press *Create Webhook*
+- Add the webhook URL in the environment variable file as `DISCORD_WEBHOOK_URL`
+
+```
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/12...
+```
+Now all trade-related logging messages will be displayed at the Discord channel as well.
