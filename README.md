@@ -1,3 +1,5 @@
+# DEX live trading strategy deployment example
+
 This is an example repository for setting up a `docker-compose.yml` for a minimal live [trade-executor](https://github.com/tradingstrategy-ai/trade-executor/).
 
 - This allows you to start a live trade execution in your computer using Docker
@@ -5,9 +7,28 @@ This is an example repository for setting up a `docker-compose.yml` for a minima
 - We use Polygon environment as it is an easy and cost-friendly way to do some test trades
 - The folder structure is set up in a manner you can run several trade executors under the same `docker-compose.yml` configuration
 
-For further iformation
-
-- [See the documentation](https://tradingstrategy.ai/docs/deployment/hot-wallet-deployment.html)
+* [Step 1: Develop a trading strategy](#step-1-develop-a-trading-strategy)
+* [Step 2: Give the strategy id](#step-2-give-the-strategy-id)
+* [Step 3: Extract strategy as a Python module](#step-3-extract-strategy-as-a-python-module)
+* [Step 4: Set up docker-compose.yml entry](#step-4-set-up-docker-composeyml-entry)
+* [Step 5: Set up an environment file](#step-5-set-up-an-environment-file)
+* [Step 6: Launching Docker for the first time](#step-6-launching-docker-for-the-first-time)
+   * [Step 6a: Set Github container registry access](#step-6a-set-github-container-registry-access)
+   * [Step 6b: Test Docker container start](#step-6b-test-docker-container-start)
+* [Step 7: Run backtest for the strategy module](#step-7-run-backtest-for-the-strategy-module)
+* [Step 8: Set up a hot wallet](#step-8-set-up-a-hot-wallet)
+   * [Step 8a: Generate a private key](#step-8a-generate-a-private-key)
+   * [Step 8b: Add the private key environment variable file](#step-8b-add-the-private-key-environment-variable-file)
+   * [Step 8c Check the wallet](#step-8c-check-the-wallet)
+   * [Step 8d: Fund the account](#step-8d-fund-the-account)
+   * [Step 8e: Check the wallet again](#step-8e-check-the-wallet-again)
+* [Step 9: Check the trading universe](#step-9-check-the-trading-universe)
+* [Step 10: Init the strategy](#step-10-init-the-strategy)
+* [Step 11: Perform test trade](#step-11-perform-test-trade)
+* [Step 12: Launch the live trading strategy](#step-12-launch-the-live-trading-strategy)
+* [Step 13: Configure additional RPC providers (optional)](#step-13-configure-additional-rpc-providers-optional)
+* [Step 14: Set up Discord logging (optional)](#step-14-set-up-discord-logging-optional)
+* [Support and social media](#support-and-social-media)
 
 # Preface
 
@@ -34,11 +55,15 @@ The usual deliverables of developing a trading strategy include:
 2. Optimiser that crunches through multiple parameters
 2. Final backtest notebook with fixed parameters you are prepared to take to the live trading
 
+This repository comes with a simple example ETH-USDC strategy. 
+
 For this example we have 
 
 1. Initial backtest - somewhere in [Getting started repo](https://github.com/tradingstrategy-ai/getting-started)
 2. Optimiser notebook. [See here](./notebooks/eth-breakout-optimiser.ipynb)
 3. Final backtest. [See here](./notebooks/eth-breakout-dex-final.ipynb)
+
+**Note**: This strategy might be too simple and overfit for real world trading.
 
 # Step 2: Give the strategy id
 
@@ -173,7 +198,7 @@ The file comes with
 
 # Step 6: Launching Docker for the first time
 
-# Step 6a: Set Github container registry access
+## Step 6a: Set Github container registry access
 
 Docker images are distributed on [Github Container Registry ghcr.io](https://github.com/features/packages).
 The access is public, but you need to have an access token through your Github account.
@@ -201,7 +226,7 @@ Docker login should reply:
 Login Succeeded
 ```
 
-# Step 6b: Test Docker container start
+## Step 6b: Test Docker container start
 
 We try to run and verify our Docker Compose launches.
 
