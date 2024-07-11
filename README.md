@@ -12,22 +12,17 @@ For further iformation
 Preface
 -------
 
-First before doing the production deployment, it is a good idea to practice the deployment on a local laptop.
+This is an example repository to do partial deployment for live trading strategies.
 
-The preproduction set up can be more straightforward than the actual production deployment, as we shortcut few things which are the major share of the work for executing a production live trading strategy.
+You need
+- Linux / macOS laptop 
+  - On Windows use Windows Subsystem for Linux (WSL)
+- Docker installation 
 
-Missing things
+This preproduction set up can be more straightforward than the actual production deployment, as we shortcut a few things here:
 - Security like managing the access to the private keys
 - Web frontend
-- Devops and diagnostics output
-    - Only output is Docker process stdoud
-
-- `[ ]` A repository tool where you are going to manage your configuration files (Github, Gitlab, etc.)
-    - See the project structure details below
-- `[ ]` Linux / macOS laptop (Windows should work, but the command line commmands differ so much, so it is unsupported)
-- `[ ]` :ref:`Docker installation with Docker compose <managing docker images>`
-- `[ ]` Convert your backtest notebook :ref:`to a Python strategy module <>`
-
+- Devops and diagnostics output: Only output is Docker process stdout
 
 # Step 1: Develop a trading strategy
 
@@ -176,7 +171,37 @@ The file comes with
 - No Trading Strategy API key set up 
 - Public low quality Polygon RPC endpoint (do not use for production - likely just keeps crashing)
 
-# Step 6: Test Docker container start
+# Step 6: Launching Docker for the first time
+
+# Step 6a: Set Github container registry access
+
+Docker images are distributed on [Github Container Registry ghcr.io](https://github.com/features/packages).
+The access is public, but you need to have an access token through your Github account.
+
+To enable docker login to Github see [how to set up Github access token to download Docker images from GHCR](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry>).
+
+- [Create a personal access tokens in Developer settings of your Github account](https://github.com/settings/tokens>) - classic token
+ 
+- You need an access token to publish, install, and delete private, internal, and public packages:
+  `repo:*`.
+
+When you find your token you can do:
+
+```shell
+GITHUB_USERNAME=miohtama
+# Your Personal Access Token (classic)
+CR_PAT=ghp_mmc...
+# This will save a config file locally with your GHCR access key
+echo $CR_PAT | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
+```
+
+Docker login should reply:
+
+```
+Login Succeeded
+```
+
+# Step 6b: Test Docker container start
 
 We try to run and verify our Docker Compose launches.
 
@@ -240,7 +265,9 @@ After the backtest is complete, you can view the HTML report:
 open state/hotwallet-polygon-eth-usdc-breakout-backtest.html
 ```
 
-You should see the backtest results, as captured from the default backtest notebook template.
+You should see the backtest results, as captured from the default backtest notebook template:
+
+![](./docs/backtest.png)
 
 # Step 8: Set up a hot wallet
 
@@ -310,34 +337,20 @@ docker compose run hotwallet-polygon-eth-usdc-breakout check-wallet
 Output:
 
 ```
-RPC details
-    Chain id is 56
-    Latest block is 23,387,643
-    Balance details
-    Hot wallet is ...
-    We have 0.370500 gas money left
-    Reserve asset: USDC
-    Balance of USD Coin: 500 USDC
-    Estimated gas fees for chain 56: <Gas pricing method:legacy base:None priority:None max:None legacy:None>
-    Execution details
-    Execution model is tradeexecutor.ethereum.uniswap_v2_execution.UniswapV2ExecutionModel
-    Routing model is tradeexecutor.ethereum.uniswap_v2_routing.UniswapV2SimpleRoutingModel
-    Token pricing model is tradeexecutor.ethereum.uniswap_v2_live_pricing.UniswapV2LivePricing
-    Position valuation model is tradeexecutor.ethereum.uniswap_v2_valuation.UniswapV2PoolRevaluator
-Routing details
-    Factory 0xca143ce32fe78f1f7019d7d551a6402fc5350c73 uses router 0x10ED43C718714eb63d5aA57B78B54704E256024E
-    Routed reserve asset is <0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d at 0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d>
-
+AssertionError: At least 0.1 native currency need, our wallet 0xABF10A4027B3e5D29c21292955DcC4ECCe05747A has 0.00000000
 ```
+
+This gives you the address for your private key.
 
 ## Step 8d: Fund the account
 
-We need 
+We need to fund the account on Polygon
 
 - MATIC to cover the gas fees: get 25 MATIC.
-- USDC.e: get 25 USDC.e.
+- [USDC.e](https://tradingstrategy.ai/trading-view/polygon/tokens/0x2791bca1f2de4661ed88a30c99a7a9449aa84174), also known USD Coin PoS: get 25 USDC.e.
 
 You can use a service like [Transak](https://transak.com/) to get MATIC with a debit card. KYC needed.
+You can get MATIC swapped to USDC.e e.g. on [KyberSwap](https://kyberswap.com/swap/polygon).
 
 Send MATIC and USDC.e to the address you saw above.
 
@@ -356,7 +369,13 @@ docker compose run hotwallet-polygon-eth-usdc-breakout check-wallet
 We see the account is funded now:
 
 ```
-
+Balance details
+  Hot wallet is 0xABF10A4027B3e5D29c21292955DcC4ECCe05747A
+  We have 10.000000 tokens left for gas
+  The gas error limit is 0.100000 tokens
+  Reserve asset: USDC 
+Reading token balances for 1 tokens at block 59193849, last 
+  Balance of USD Coin (PoS) (0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174): 1.988353 USDC
 ```
 
 ## Step 9: Check the trading universe
@@ -371,16 +390,31 @@ We see the account is funded now:
 You can run this with configured `docker-compose` as:
 
 ```shell
-docker compose run pancake-eth-usd-sma check-universe
+docker compose run hotwallet-polygon-eth-usdc-breakout check-universe
 ```
 
-This will print out:
+This will print out the last available candle, based on the the strategy `Parameters.candle_time_bucket`:
 
 ```
-Latest OHCLV candle is at: 2022-11-24 16:00:00, 1:49:57.985345 ago
+Latest OHCLV candle is at: 2024-07-10 15:00:00, 0:19:41.794234 ago
 ```
 
-## Step 10: Perform test trade
+## Step 10: Init the strategy
+
+This will write the initial state file for your trading strategy:
+
+```shell
+docker compose run hotwallet-polygon-eth-usdc-breakout init
+```
+
+It should output something like:
+
+```
+Saved state to state/hotwallet-polygon-eth-usdc-breakout.json, total 1,108 chars
+All done: State deployment info is <Deployment chain:polygon address:0xABF10A4027B3e5D29c21292955DcC4ECCe05747A name:None token:None>
+```
+
+## Step 11: Perform test trade
 
 After you are sure that trading data and hot wallet are fine,
 you can perform a test trade from the command line.
@@ -404,39 +438,56 @@ you can perform a test trade from the command line.
 Example:
 
 ```shell
-docker-compose run pancake-eth-usd-sma perform-test-trade
+docker compose run hotwallet-polygon-eth-usdc-breakout perform-test-trade
 ```
 
+This will print something like:
 
 ```
-...
-Making a test trade on pair: <Pair ETH-USDC at 0xea26b78255df2bbc31c1ebf60010d78670185bd0 on exchange 0xca143ce32fe78f1f7019d7d551a6402fc5350c73>, for 1.000000 USDC price is 1217.334094 ETH/USDC
-...
-Position <Open position #2 <Pair ETH-USDC at 0xea26b78255df2bbc31c1ebf60010d78670185bd0 on exchange 0xca143ce32fe78f1f7019d7d551a6402fc5350c73> $1.000501504460405> open. Now closing the position.
-...
-All ok
+Test trade report
+  Gas spent: 0.016125835459386936
+  Trades done currently: 2
+  Reserves currently: 1.986876 USDC
+  Reserve currency spent: 0.0014769999999999506 USDC
+  Buy trade price, expected: 3113.8176546091504, actual: 3111.
+  Sell trade price, expected: 3108.3790383082533, actual: 3110.0700549742683 (WETH-USDC)
 ```
 
-## Step 11: Launch the live strategy
+## Step 12: Launch the live trading strategy
 
 Now you are ready to start the strategy.
 
-We first suggest to start on foreground.
+We first suggest start on the foreground.
 
 ```shell
-docker compose up -d     
+docker compose up hotwallet-polygon-eth-usdc-breakout
 ```
+
+After the boot up dance you will see:
+
+```
+apscheduler.scheduler                              INFO     Scheduler started
+```
+
+This means the trade-executor is now running, with its scheduled tasks (decide trades, check stop losses, revalue the portfolio, etc.).
+Leave it running.
 
 The given strategy rebalances every 1h. So you should see something working or not working within 1h.
 
-## Step 12: Configure additional RPC providers (optional)
+For the long-term running, use daemon option:
+
+```shell
+docker compose up -d hotwallet-polygon-eth-usdc-breakout
+```
+
+## Step 13: Configure additional RPC providers (optional)
 
 - The configuration line `JSON_RPC_POLYGON` accepts multiple space separared provided URLs.
 - The same feature can be used to add MEV protected RPC endpoints for your trade executor
 
 [See the multi-RPC configuration documentation here](https://web3-ethereum-defi.readthedocs.io/tutorials/multi-rpc-configuration.html).
 
-## Step 13: Set up Discord logging (optional)
+## Step 14: Set up Discord logging (optional)
 
 In this example, we only output trades in the docker console.
 
@@ -453,3 +504,14 @@ To configure Discord logging
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/12...
 ```
 Now all trade-related logging messages will be displayed at the Discord channel as well.
+
+# Support and social media
+
+Got any questions? Pop into our Discord.
+
+- [Trading Strategy community Discord server](https://tradingstrategy.ai/community#discord)
+- [Trading Strategy website](https://tradingstrategy.ai)
+- [Blog](https://tradingstrategy.ai/blog)
+- [Twitter](https://twitter.com/TradingProtocol)
+- [Telegram channel](https://t.me/trading_protocol)
+- [Newsletter](https://tradingstrategy.ai/newsletter)

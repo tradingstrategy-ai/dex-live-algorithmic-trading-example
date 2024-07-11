@@ -39,20 +39,20 @@ class Parameters:
     candle_time_bucket = TimeBucket.h1
     allocation = 0.98
 
-    atr_length = 6 
-    fract = 2.1
+    atr_length = 17
+    fract = 2.5
     adx_length = 60
     adx_filter_threshold = 48
 
-    trailing_stop_loss_pct = 0.98
-    trailing_stop_loss_activation_level = 1.08
-    stop_loss_pct = 0.98
+    trailing_stop_loss_pct = 0.96
+    trailing_stop_loss_activation_level = 1.07
+    stop_loss_pct = 0.97
     take_profit_pct = 1.10
 
     #
     # Live trading only
     #
-    chain_id = ChainId.arbitrum
+    chain_id = ChainId.polygon
     routing = TradeRouting.default  # Pick default routes for trade execution
     required_history_period = datetime.timedelta(hours=adx_length*2)
 

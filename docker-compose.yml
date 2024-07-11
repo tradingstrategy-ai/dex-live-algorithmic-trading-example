@@ -1,42 +1,45 @@
-    version: "3.9"
+  
+# The base template for trade-executor live trading
+x-trade-executor: &default-trade-executor
+  image: ghcr.io/tradingstrategy-ai/trade-executor:${TRADE_EXECUTOR_VERSION}
+  # All live executors have internal exception recovery mechanism,
+  # If trade executor stops it must be manually restarted.
+  # However webhook server stays around and can still take commands
+  # even if the trade executor loop has stopped.
+  restart: "no"
+  mem_swappiness: 0
+  volumes:
+    # Map the path from where we load the strategy Python modules
+    - ./strategies:/usr/src/trade-executor/strategies
+    # Save the strategy execution state in the local filesystem
+    - ./state:/usr/src/trade-executor/state
+    # Cache the dataset downloads in the local filesystem
+    - ./cache:/usr/src/trade-executor/cache
+    # Save the log files to the local file system
+    - ./logs:/usr/src/trade-executor/logs
 
-    # The base template for trade-executor live trading
-    x-trade-executor: &default-trade-executor
-      image: ghcr.io/tradingstrategy-ai/trade-executor:${TRADE_EXECUTOR_VERSION}
-      # All live executors have internal exception recovery mechanism,
-      # If trade executor stops it must be manually restarted.
-      # However webhook server stays around and can still take commands
-      # even if the trade executor loop has stopped.
-      restart: "no"
-      mem_swappiness: 0
-      volumes:
-        # Map the path from where we load the strategy Python modules
-        - ./strategies:/usr/src/trade-executor/strategies
-        # Save the strategy execution state in the local filesystem
-        - ./state:/usr/src/trade-executor/state
-        # Cache the dataset downloads in the local filesystem
-        - ./cache:/usr/src/trade-executor/cache
-        # Save the log files to the local file system
-        - ./logs:/usr/src/trade-executor/logs
+  # CTRL+C workaround
+  # https://stackoverflow.com/a/50357065/315168
+  init: true  
 
-      # CTRL+C workaround
-      # https://stackoverflow.com/a/50357065/315168
-      init: true  
+  # This is the default trade-executor command to
+  # launch as a daemon mode.
+  # There are several subcommands, you can check out with 
+  # [~/code/live-trading-example]% docker compose run hotwallet-polygon-eth-usdc-breakout --help
+  command: start
 
-      # This is the default trade-executor command to
-      # launch as a daemon mode.
-      # There are several subcommands.
-      command: start
-
-    services:
+# Define trade-executor Docker containers
+services:
+  
+  # Our first containe
+  hotwallet-polygon-eth-usdc-breakout:  # This is your trade executor id
+    <<: *default-trade-executor  # Extend the default configuration block
+    container_name: hotwallet-polygon-eth-usdc-breakout  # Same as above
+    platform: linux/amd64 # MacOS workaround
+    env_file:
+      - ./env/hotwallet-polygon-eth-usdc-breakout.env
+    # Web API for frontend would be exposed in this port,
+    # 
+    # ports:  
+    #   - "127.0.0.1:19006:3456"
       
-      hotwallet-polygon-eth-usdc-breakout:  # This is your trade executor id
-        <<: *default-trade-executor  # Extend the default configuration block
-        container_name: hotwallet-polygon-eth-usdc-breakout  # Same as above
-        env_file:
-          - ./env/hotwallet-polygon-eth-usdc-breakout.env
-        # Web API for frontend would be exposed in this port,
-        # 
-        # ports:  
-        #   - "127.0.0.1:19006:3456"
-          
