@@ -9,14 +9,14 @@ For further iformation
 
 - [See the documentation](https://tradingstrategy.ai/docs/deployment/hot-wallet-deployment.html)
 
-Preface
--------
+# Preface
 
 This is an example repository to do partial deployment for live trading strategies.
 
 You need
+- Basic experience in UNIX system administration 
 - Linux / macOS laptop 
-  - On Windows use Windows Subsystem for Linux (WSL)
+  - On Windows, use Windows Subsystem for Linux (WSL)
 - Docker installation 
 
 This preproduction set up can be more straightforward than the actual production deployment, as we shortcut a few things here:
@@ -378,7 +378,7 @@ Reading token balances for 1 tokens at block 59193849, last
   Balance of USD Coin (PoS) (0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174): 1.988353 USDC
 ```
 
-## Step 9: Check the trading universe
+# Step 9: Check the trading universe
 
 `trade-executor` provides the subcommand `check-universe` to ensure the market data feeds work correctly.
 
@@ -399,7 +399,7 @@ This will print out the last available candle, based on the the strategy `Parame
 Latest OHCLV candle is at: 2024-07-10 15:00:00, 0:19:41.794234 ago
 ```
 
-## Step 10: Init the strategy
+# Step 10: Init the strategy
 
 This will write the initial state file for your trading strategy:
 
@@ -414,7 +414,7 @@ Saved state to state/hotwallet-polygon-eth-usdc-breakout.json, total 1,108 chars
 All done: State deployment info is <Deployment chain:polygon address:0xABF10A4027B3e5D29c21292955DcC4ECCe05747A name:None token:None>
 ```
 
-## Step 11: Perform test trade
+# Step 11: Perform test trade
 
 After you are sure that trading data and hot wallet are fine,
 you can perform a test trade from the command line.
@@ -453,7 +453,7 @@ Test trade report
   Sell trade price, expected: 3108.3790383082533, actual: 3110.0700549742683 (WETH-USDC)
 ```
 
-## Step 12: Launch the live trading strategy
+# Step 12: Launch the live trading strategy
 
 Now you are ready to start the strategy.
 
@@ -469,10 +469,26 @@ After the boot up dance you will see:
 apscheduler.scheduler                              INFO     Scheduler started
 ```
 
-This means the trade-executor is now running, with its scheduled tasks (decide trades, check stop losses, revalue the portfolio, etc.).
-Leave it running.
+This means the trade-executor is now running, with its scheduled tasks (decide trades, check stop losses, revalue the portfolio, etc.). Leave it running.
 
-The given strategy rebalances every 1h. So you should see something working or not working within 1h.
+There is a lot of output (noisy). In some point you should catch the message about `decide_trades`:
+
+```
+ 2024-07-11 08:08:27 tradeexecutor.strategy.runner                      INFO     No open 
+ 2024-07-11 08:08:27 tradeexecutor.strategy.runner                      INFO     No frozen 
+ 2024-07-11 08:08:27 tradeexecutor.strategy.runner                      TRADE    Portfolio 
+ 
+ Total equity: $1.99, in cash: $1.99
+ Life-time positions: 1, trades: 2
+ …
+ Reserves:
+ 
+     1.99 USDC
+ 
+ 2024-07-11 08:08:27 tradeexecutor.utils.timer                          INFO     Starting task decide_trades at 2024-07-11 08:08:27.183694, context is {}
+```
+
+The given strategy rebalances every 1h. So you should see something working or not working within 1h. The rebalance does not happen exactly at 00 minutes, but a bit past, as the candle data needs to be properly formed first.
 
 For the long-term running, use daemon option:
 
@@ -480,14 +496,14 @@ For the long-term running, use daemon option:
 docker compose up -d hotwallet-polygon-eth-usdc-breakout
 ```
 
-## Step 13: Configure additional RPC providers (optional)
+# Step 13: Configure additional RPC providers (optional)
 
 - The configuration line `JSON_RPC_POLYGON` accepts multiple space separared provided URLs.
 - The same feature can be used to add MEV protected RPC endpoints for your trade executor
 
 [See the multi-RPC configuration documentation here](https://web3-ethereum-defi.readthedocs.io/tutorials/multi-rpc-configuration.html).
 
-## Step 14: Set up Discord logging (optional)
+# Step 14: Set up Discord logging (optional)
 
 In this example, we only output trades in the docker console.
 
