@@ -63,13 +63,19 @@ For this example we have
 2. Optimiser notebook. [See here](./notebooks/eth-breakout-optimiser.ipynb)
 3. Final backtest. [See here](./notebooks/eth-breakout-dex-final.ipynb)
 
-**Note**: This strategy might be too simple and overfit for real world trading.
+**Note**: Github does not view notebooks fully - you need to open them locally.
+
+**Note**: This strategy might be too simple and overfit for real-world trading.
 
 # Step 2: Give the strategy id
 
 You are going to have a lot of strategies. You need to have a systematic way to keep track of them.
 
-We are going to us `hotwallet-polygon-eth-usdc-breakout`. It's a mouthful, but self-explanatory.
+This example uses id `hotwallet-polygon-eth-usdc-breakout`. It's a mouthful, but self-explanatory.
+- Asset management mode (hot wallet)
+- The target chain (Polygon)
+- Pairs to be traded (ETH/USDC)
+- Type of strategy (breakout)
 
 This id is used in
 
@@ -188,7 +194,7 @@ Each trade executor docker is configured using environment variable files using 
 **Note**: For the production deployment it is recommend against putting any highly sensitive material like private keys
 directly to these files/
 
-- See [hotwallet-polygon-eth-usdc-breakout.env](./hotwallet-polygon-eth-usdc-breakout.env)
+- See [hotwallet-polygon-eth-usdc-breakout.env](./env/hotwallet-polygon-eth-usdc-breakout.env)
 
 The file comes with
 
