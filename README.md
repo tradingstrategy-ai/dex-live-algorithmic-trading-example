@@ -2,9 +2,10 @@
 
 This is an example repository for setting up a `docker-compose.yml` for a minimal live [trade-executor](https://github.com/tradingstrategy-ai/trade-executor/).
 
-- This allows you to start a live trade execution in your computer using Docker
+- This repository comes with a preconfigured strategy `hotwallet-polygon-eth-usdc-breakout`
+- This allows you to start a live trade execution on your computer using Docker
 - It is a limited preproduction environment with devops and web frontend missing
-- We use Polygon environment as it is an easy and cost-friendly way to do some test trades
+- We use the Polygon blockchain as it is an easy and cost-friendly way to do some test trades
 - The folder structure is set up in a manner you can run several trade executors under the same `docker-compose.yml` configuration
 
 * [Step 1: Develop a trading strategy](#step-1-develop-a-trading-strategy)
