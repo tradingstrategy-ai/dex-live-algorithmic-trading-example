@@ -215,7 +215,7 @@ To enable docker login to Github see [how to set up Github access token to downl
 - [Create a personal access tokens in Developer settings of your Github account](https://github.com/settings/tokens) - classic token
  
 - You need an access token to publish, install, and delete private, internal, and public packages:
-  `repo:*`.
+  `repo:*` and `read:packages`.
 
 When you find your token you can do:
 
