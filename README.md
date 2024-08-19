@@ -212,7 +212,7 @@ The access is public, but you need to have an access token through your Github a
 
 To enable docker login to Github see [how to set up Github access token to download Docker images from GHCR](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry>).
 
-- [Create a personal access tokens in Developer settings of your Github account](https://github.com/settings/tokens>) - classic token
+- [Create a personal access tokens in Developer settings of your Github account](https://github.com/settings/tokens) - classic token
  
 - You need an access token to publish, install, and delete private, internal, and public packages:
   `repo:*`.
